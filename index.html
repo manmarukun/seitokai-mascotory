@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>seitokai-mascotory</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{--bg:#F4F8FF;--sf:#fff;--ink:#1D2B3F;--mute:#66758B;--line:#D9E4F2;--hl:#FFF0B8;--hlt:#4F3A00;--ac:#2F7FD8;--acfg:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1724;--sf:#182234;--ink:#E8EEF8;--mute:#93A2B8;--line:#2A3850;--hl:#4A3B0C;--hlt:#FFE9A3;--ac:#6DB0F5;--acfg:#0F1724}}
+:root[data-theme="dark"]{--bg:#0F1724;--sf:#182234;--ink:#E8EEF8;--mute:#93A2B8;--line:#2A3850;--hl:#4A3B0C;--hlt:#FFE9A3;--ac:#6DB0F5;--acfg:#0F1724}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 "Hiragino Sans","Yu Gothic UI","Noto Sans JP",system-ui,sans-serif}
+main{max-width:640px;margin:0 auto;padding:20px 16px 48px}
+header{display:flex;gap:16px;align-items:center;margin-bottom:20px}
+#pv{width:112px;height:112px;flex:none;animation:fl 4s ease-in-out infinite}
+@keyframes fl{50%{transform:translateY(-8px) rotate(2deg)}}
+@media (prefers-reduced-motion:reduce){#pv{animation:none}}
+h1{font-size:1.3rem;line-height:1.35;margin:0 0 4px}
+header p{margin:0;color:var(--mute);font-size:.9rem}
+.card{background:var(--sf);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+h2{font-size:1rem;margin:0 0 10px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.tabs button{min-height:56px;border:2px solid var(--line);background:var(--sf);color:var(--ink);border-radius:14px;font:inherit;font-size:.85rem;line-height:1.3;cursor:pointer;padding:6px}
+.tabs button[aria-pressed=true]{border-color:var(--ac);font-weight:700}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:4px;vertical-align:-1px;border:1px solid var(--line)}
+label{display:block;font-size:.85rem;color:var(--mute);margin:10px 0 4px}
+.row{display:flex;gap:8px;align-items:center}
+select,input[type=text],textarea{width:100%;min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;padding:8px 10px}
+input[type=color]{width:52px;height:44px;flex:none;border:1px solid var(--line);border-radius:10px;background:none;padding:2px}
+textarea{min-height:72px;resize:vertical}
+.opts{display:flex;flex-wrap:wrap;gap:16px;margin-top:12px}
+.opts label{display:flex;align-items:center;gap:6px;margin:0;color:var(--ink);font-size:.9rem;min-height:44px}
+#out{white-space:pre-wrap;font:.85rem/1.65 ui-monospace,Menlo,Consolas,monospace;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;word-break:break-word}
+#out .f{color:var(--mute)}
+#out .p{background:var(--hl);color:var(--hlt);border-radius:4px;padding:0 2px}
+.cp{margin-top:12px;width:100%;min-height:48px;border:0;border-radius:12px;background:var(--ac);color:var(--acfg);font:inherit;font-weight:700;cursor:pointer}
+.note{font-size:.82rem;color:var(--mute);margin:10px 0 0}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chips label{display:flex;align-items:center;gap:6px;margin:0;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:22px;color:var(--ink);font-size:.85rem;background:var(--bg);cursor:pointer}.chips label:has(input:checked){border-color:var(--ac);font-weight:700}
+:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+<header>
+<svg id="pv" viewBox="0 0 200 200" aria-hidden="true"></svg>
+<div><h1>seitokai-mascotory</h1><p>生徒会マスコットのプロンプト変換ツール。キャラは固定のまま、ポーズだけ差し替えます。</p></div>
+</header>
+
+<div class="tabs" id="tabs" role="group" aria-label="キャラクター"></div>
+
+<section class="card">
+<h2>形と色（キャラ別に変更できます）</h2>
+<label for="sh">体の形</label><select id="sh"></select>
+<div class="opts" style="margin-top:4px"><label><input type="checkbox" id="lf"> 頭に葉っぱを付ける</label></div>
+<label for="bc">体の色</label>
+<div class="row"><input type="color" id="bc"><input type="text" id="bn" aria-label="体の色の英語名"></div>
+<label for="ac">小物の色</label>
+<div class="row"><input type="color" id="ac"><input type="text" id="an" aria-label="小物の色の英語名"></div>
+</section>
+
+<section class="card">
+<h2>ポーズ</h2>
+<label for="pose">動き</label><select id="pose"></select>
+<label for="eye">目の表情</label><select id="eye"></select>
+<label for="view">向き</label><select id="view"></select>
+<label for="comp">構図</label><select id="comp"></select>
+<label>そばに置くもの（複数選べます）</label><div class="chips" id="objs"></div>
+<label for="free">追加の指定（英語がおすすめ。空でも可）</label>
+<textarea id="free" placeholder="例: leaning slightly to the left, as if looking at a notice board"></textarea>
+<label for="bg">背景</label><select id="bg"><option value="tr">透過（できなければ白）</option><option value="wh">白</option></select>
+<div class="opts">
+<label><input type="radio" name="mode" value="3d" checked> 立体（もふもふ）</label>
+<label><input type="radio" name="mode" value="flat"> フラット</label>
+<label><input type="checkbox" id="ref"> 参照画像を添付する</label>
+</div>
+</section>
+
+<section class="card">
+<h2>生成用プロンプト</h2>
+<div id="out" aria-live="polite"></div>
+<button class="cp" id="copy" type="button">プロンプトをコピー</button>
+<p class="note">灰色の部分がキャラの固定設定、黄色の部分がポーズです。最初の1枚を参照画像として添付し、チェックを入れると同じキャラになりやすくなります。透過に対応していないAIでは白背景になるので、生成後に背景除去ツールで切り抜いてください。</p>
+</section>
+</main>
+
+<script>
+var CH={
+A:{n:"A 目安箱の帽子",b:"#5AA9F0",bn:"bright soft sky blue",a:"#FFC933",an:"warm yellow",s:0},
+B:{n:"B ヘッドホン",b:"#FFD04D",bn:"bright warm yellow",a:"#4A9AE8",an:"soft blue",s:1},
+C:{n:"C 丸メガネとネクタイ",b:"#6FCF97",bn:"fresh mint green",a:"#FFC933",an:"warm yellow",s:2,l:1}
+};
+var POSES=[
+["基本（ふわっと浮かぶ）","floating gently in the air, slightly tilted"],
+["うれしい（ぴょんと跳ねる）","bouncing upward in joy, body stretched slightly taller"],
+["考え中","head tilted to one side, eyes looking upward, as if thinking"],
+["ひらめいた","eyes wide and bright, popping up slightly, as if having a sudden good idea"],
+["聞いている","leaning slightly toward the viewer, attentive, as if listening carefully"],
+["のぞき込む","peeking in from the bottom-right corner of the frame, only the upper half of the body visible"],
+["ありがとう（おじぎ）","leaning forward in a small bow, as if saying thank you"],
+["ねむい","drooping slightly and floating lower, sleepy"],
+["びっくり","popping up in surprise, body stretched slightly taller"],
+["くるっと回る","mid-spin with a soft motion, edges slightly blurred"],
+["応援する","tilting energetically from side to side, cheerful"],
+["困った","slightly deflated and tilted, looking down to the left"]
+];
+var EYES=[["そのまま",""],["にっこり（弧の目）","eyes shaped as happy curved arcs"],["閉じる","eyes gently closed"],["大きく開く","eyes slightly larger and round"],["上を見る","eyes looking upward"]];
+var VIEWS=[["正面","front view"],["少し斜め（左向き）","slight three-quarter view facing left"],["少し斜め（右向き）","slight three-quarter view facing right"]];
+var COMPS=[["中央に小さく（余白広め）","centered, occupying about 40% of the frame, lots of empty space"],["中央に大きく","centered, occupying about 70% of the frame"],["画面の端で見切れる","partially cropped at the edge of the frame"]];
+var SHAPES=[["波打つ雲型","A rounded body with a softly wavy outline like a puffy cloud, with about 7 gentle bumps around the edge"],["吹き出し型","A rounded body shaped like a soft speech bubble, a wide rounded blob with one small short rounded tail at the lower left, no text inside"],["洋なし型","A soft pear-shaped body with a narrower rounded top and a wider rounded bottom, smooth outline, no bumps"],["ぷっくり星型","A soft puffy star-shaped body with five very short, very rounded points, like a small cushion"],["縦長のたまご型","A tall egg-shaped body, taller than wide, with a smooth rounded outline and no bumps"]];
+var OBJS=[["thought","考え中の吹き出し","a small cloud-shaped thought bubble at the upper right, connected by two tiny circles, with a simple question mark symbol inside"],["bulb","電球（ひらめき）","a small glowing light bulb floating above and to the right"],["excl","びっくりマーク","a small exclamation mark symbol floating at the upper right"],["ques","はてなマーク","a small question mark symbol floating at the upper right"],["sweat","汗のしずく","a single small sweat drop at the side of its body"],["sparkle","キラキラ","a few small sparkles around it"],["paper","意見のメモ","two or three small folded paper notes floating around it"],["box","目安箱","a small suggestion box with a slot on top placed next to it"],["mega","メガホン","a small megaphone floating next to it"],["glass","虫眼鏡","a small magnifying glass floating next to it"],["note","音符","a few small musical note symbols floating around it"],["heart","ハート","a small heart floating next to it"],["flag","旗","a small flag floating next to it"]];
+var DEF={"考え中":["thought"],"ひらめいた":["bulb"],"びっくり":["excl"],"困った":["sweat"],"応援する":["sparkle"]};
+$("objs").innerHTML=OBJS.map(function(o){return '<label><input type="checkbox" value="'+o[0]+'"> '+o[1]+'</label>'}).join("");
+function setObjs(l){[].slice.call(document.querySelectorAll("#objs input")).forEach(function(i){i.checked=l.indexOf(i.value)>-1})}
+var cur="A";
+function $(i){return document.getElementById(i)}
+function fill(id,arr){$(id).innerHTML=arr.map(function(o,i){return '<option value="'+i+'">'+o[0]+'</option>'}).join("")}
+fill("pose",POSES);fill("eye",EYES);fill("view",VIEWS);fill("comp",COMPS);fill("sh",SHAPES);
+
+function tabs(){
+$("tabs").innerHTML=Object.keys(CH).map(function(k){var c=CH[k];
+return '<button type="button" data-k="'+k+'" aria-pressed="'+(k===cur)+'"><span class="dot" style="background:'+c.b+'"></span>'+c.n+'</button>'}).join("");
+}
+$("tabs").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;cur=b.dataset.k;tabs();load();build()});
+
+function load(){var c=CH[cur];$("bc").value=c.b;$("bn").value=c.bn;$("ac").value=c.a;$("an").value=c.an;$("sh").value=c.s;$("lf").checked=!!c.l}
+["bc","bn","ac","an"].forEach(function(id){$(id).addEventListener("input",function(){
+var c=CH[cur];c.b=$("bc").value;c.bn=$("bn").value;c.a=$("ac").value;c.an=$("an").value;tabs();build()})});
+$("sh").addEventListener("change",function(){CH[cur].s=parseInt($("sh").value,10)});
+$("lf").addEventListener("change",function(){CH[cur].l=$("lf").checked?1:0;build()});
+$("pose").addEventListener("change",function(){setObjs(DEF[POSES[$("pose").value][0].split("（")[0]]||[])});
+$("objs").addEventListener("change",build);
+document.querySelectorAll("select,textarea,#ref,input[name=mode]").forEach(function(el){el.addEventListener("input",build);el.addEventListener("change",build)});
+
+function blob(){
+var p=[],i,t,r,x,y,d,g,w,k=CH[cur].s;for(i=0;i<120;i++){t=i/120*Math.PI*2;if(k===0){r=60+5*Math.sin(7*t);x=100+r*Math.cos(t);y=104+r*Math.sin(t)}else if(k===1){d=Math.atan2(Math.sin(t-2.2),Math.cos(t-2.2));g=1+.34*Math.exp(-d*d/(2*.16*.16));x=100+62*g*Math.cos(t);y=98+54*g*Math.sin(t)}else if(k===2){w=34+15*(Math.sin(t)+1);x=100+w*Math.cos(t);y=104+62*Math.sin(t)}else if(k===3){r=54+12*Math.cos(5*(t+Math.PI/2));x=100+r*Math.cos(t);y=104+r*Math.sin(t)}else{x=100+47*Math.cos(t);y=104+64*Math.sin(t)}p.push(x.toFixed(1)+","+y.toFixed(1))}
+return "M"+p.join("L")+"Z"}
+function preview(){
+var c=CH[cur],sh=c.s,top=[44,44,42,38,40][sh],bot=[164,152,166,146,168][sh],hw=[60,62,51,56,47][sh],s='<path d="'+blob()+'" fill="'+c.b+'"/>',ink="#1D2B3F";
+if(cur==="A")s+='<rect x="95" y="'+(top-30)+'" width="10" height="10" fill="#fff"/><rect x="82" y="'+(top-22)+'" width="36" height="20" rx="6" fill="'+c.b+'" style="filter:brightness(.85)"/><circle cx="123" cy="'+(top-8)+'" r="6" fill="'+c.a+'"/>';
+if(cur==="B")s+='<ellipse cx="'+(102-hw)+'" cy="104" rx="9" ry="18" fill="'+c.a+'"/><ellipse cx="'+(98+hw)+'" cy="104" rx="9" ry="18" fill="'+c.a+'"/>';
+if(cur==="C")s+='<circle cx="80" cy="100" r="13" fill="none" stroke="'+ink+'" stroke-width="3"/><circle cx="120" cy="100" r="13" fill="none" stroke="'+ink+'" stroke-width="3"/><path d="M93 100h14" stroke="'+ink+'" stroke-width="3"/><path d="M92 '+(bot-18)+'h16l-8 18z" fill="'+c.a+'"/>';
+if(c.l)s+='<path d="M100 '+top+'q0 -14 4 -20" stroke="#3FA66B" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M104 '+(top-18)+'q16 -12 26 2q-12 12 -26 -2z" fill="#3FA66B"/>';
+s+='<circle cx="80" cy="100" r="4.5" fill="'+ink+'"/><circle cx="120" cy="100" r="4.5" fill="'+ink+'"/>';
+$("pv").innerHTML=s}
+
+function plain(){return window.__plain||""}
+function build(){
+var c=CH[cur],shp=SHAPES[c.s][1],m=document.querySelector("input[name=mode]:checked").value,gl=m==="3d"?"glossy ":"",bn=c.bn+" ("+c.b+")",an=c.an+" ("+c.a+")",F=[],P=[];
+var intro=m==="3d"
+?"A cute small, light and airy blob mascot character for a high school student council, floating gently in the air like a puffy little cloud. "+shp+", covered in very short, light, delicate fuzz, "+bn+", slightly translucent glowing edges."
+:"A cute small flat vector mascot character for a high school student council, light and airy. "+shp+", "+bn+" with a very subtle soft gradient, no fur texture.";
+var eyes="Two tiny "+gl+"black oval dot eyes, wide apart, no mouth.";
+var det={
+A:eyes+" On top of its head, a tiny hat shaped like a small suggestion box with a thin slot on top and a small white paper note peeking out of the slot. A tiny "+an+" ribbon bow next to the hat.",
+B:eyes+" Wearing small "+an+" over-ear headphones on both sides of its head.",
+C:"Wearing round thin-framed dark glasses, with two tiny "+gl+"black oval dot eyes visible through the lenses, no mouth. A small "+an+" necktie at the bottom center of its body."
+}[cur];
+if($("ref").checked)F.push("Use the attached image as the exact character reference. Keep the identical character design (body shape, proportions, color, texture, eyes, accessories). Change only the pose and composition.");
+F.push(intro,"No arms, no legs, no feet.",det+(c.l?" A tiny single leaf with a short stem on top of its head, in a slightly darker leaf green (#3FA66B).":""),"It is still a soft mascot character, not a realistic fruit.");
+var po=POSES[$("pose").value][1],ey=EYES[$("eye").value][1],vw=VIEWS[$("view").value][1],cp=COMPS[$("comp").value][1],fr=$("free").value.trim();
+var pose="Pose: "+po+(ey?", "+ey:"")+", "+vw+", "+cp+".";
+if(fr)pose+=" Extra pose details: "+fr.replace(/\.$/,"")+".";
+var ob=[].slice.call(document.querySelectorAll("#objs input:checked")).map(function(i){return OBJS.filter(function(o){return o[0]===i.value})[0][2]});
+if(ob.length)pose+=" Beside it: "+ob.join("; ")+". These objects are small, simple and drawn in the same soft style as the character.";
+var tr=$("bg").value==="tr",bgt=tr?"Transparent background (PNG with alpha channel), subject isolated with nothing behind it. If transparency is not supported, use a plain solid pure white background.":"Pure white background.";
+var st=m==="3d"
+?"Soft 3D render, lightweight and bouncy feeling, gentle diffused lighting, "+(tr?"no cast shadow.":"very faint blurry shadow far below it.")+" "+bgt
+:"Flat design, clean smooth shapes, no outlines, no shadows, minimal and simple. "+bgt;
+var tail="No text or letters except the symbols specified above, no human features, no existing characters.";
+var esc=function(t){return t.replace(/&/g,"&amp;").replace(/</g,"&lt;")};
+var head=F.slice(0,F.length);
+$("out").innerHTML=head.map(function(t){return '<span class="f">'+esc(t)+'</span>'}).join("\n")+"\n<span class=\"p\">"+esc(pose)+"</span>\n<span class=\"f\">"+esc(st)+"</span>\n<span class=\"f\">"+esc(tail)+"</span>";
+window.__plain=head.concat([pose,st,tail]).join("\n");
+preview()}
+
+$("copy").addEventListener("click",function(){
+var t=plain(),b=$("copy"),done=function(ok){b.textContent=ok?"コピーしました":"コピーできませんでした。手動で選択してください";setTimeout(function(){b.textContent="プロンプトをコピー"},1800)};
+function fb(){try{var r=document.createRange();r.selectNodeContents($("out"));var s=getSelection();s.removeAllRanges();s.addRange(r);done(document.execCommand("copy"))}catch(e){done(false)}}
+try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){done(true)},fb)}else fb()}catch(e){fb()}});
+
+tabs();load();build();
+</script>
+</body>
+</html>
